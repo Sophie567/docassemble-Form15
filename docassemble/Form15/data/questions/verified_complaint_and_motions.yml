@@ -1,0 +1,421 @@
+---
+include:
+  - docassemble.AssemblyLine:al_package.yml
+  - docassemble.ALMassachusetts:al_massachusetts.yml
+---
+metadata:
+  title: |
+    Verified complaint and motions for temporary restraining order and preliminary injunction
+  short title: |
+    Verified complaint and motions for TRO and PI
+  tags:
+    - HO-00-00-00-00
+  authors:
+    - Sofija Belajcic
+---
+mandatory: True
+comment: |
+  Global interview metadata
+variable name: interview_metadata["verified_complaint_and_motions"]
+data:
+  al_weaver_version: "1.6.3"
+  generated on: "2022-05-10"
+  title: >-
+    Verified complaint and motions for temporary restraining order and preliminary injunction
+  short title: >-
+    Verified complaint and motions for TRO and PI
+  description: |-
+    You may use this form to ask the court to order the landlord to stop behaving illegally
+  original_form: >-
+    https://www.masslegalhelp.org/housing/lt1-form-15-tro.pdf
+  allowed courts: 
+    - "Boston Municipal Court"
+    - "District Court"
+    - "Housing Court"
+  categories:
+    - "HO-00-00-00-00"
+  typical role: "plaintiff"
+---
+code: |
+  interview_metadata['main_interview_key'] =  'verified_complaint_and_motions'
+---
+code: |
+  # This controls the default country and list of states in address field questions
+  AL_DEFAULT_COUNTRY = "US"
+---
+code: |
+  # This controls the default state in address field questions
+  AL_DEFAULT_STATE = "MA"
+---
+code: |
+  github_repo_name =  'docassemble-VerifiedComplaintAndMotions'
+---
+code: |
+  interview_short_title = "File a Verified Complaint Form"
+---
+code: |
+  al_form_type = 'starts_case'
+---
+objects:
+  - other_parties: ALPeopleList.using(there_are_any=True)
+  - users: ALPeopleList.using(there_are_any=True)
+---
+sections:
+  - review_verified_complaint_and_motions: Review your answers
+---
+#################### Interview order #####################
+comment: |
+  Controls order and branching logic for questions specific to this form
+id: interview_order_verified_complaint_and_motions
+code: |
+  # Set the allowed courts for this interview
+  allowed_courts = interview_metadata["verified_complaint_and_motions"]["allowed courts"]
+  nav.set_section('review_verified_complaint_and_motions')
+  user_role = 'plaintiff'
+  File_a_Verified_Complaint_Form
+  landlord
+  date_of_breach
+  landlord_breach
+  set_progress(16)
+  rent_subsidy
+  rent_amount
+  demand_letter_sent
+  court_orders
+  docket_number
+  set_progress(33)
+  other_parties.gather()
+  trial_court
+  other_parties[0].phone_number
+  users.gather()
+  set_parts(subtitle=str(users))
+  users[0].email
+  set_progress(50)
+  users[0].address.address
+  users[0].phone_number
+  trial_court.address.address
+  other_parties[0].address.address
+  set_progress(66)
+  signature_date
+  interview_order_verified_complaint_and_motions = True
+---
+###################### Main order ######################
+comment: |
+  This block includes the logic for standalone interviews.
+  Delete mandatory: True to include in another interview
+mandatory: True
+code: |
+  al_intro_screen
+  verified_complaint_and_motions_intro
+  interview_order_verified_complaint_and_motions
+  signature_date
+  # Save anonymized interview statistics (customize the saved data below)
+  store_variables_snapshot(data={'zip': users[0].address.zip})
+  verified_complaint_and_motions_preview_question
+  basic_questions_signature_flow
+  verified_complaint_and_motions_download
+---
+comment: |
+  This question is used to introduce your interview. Please customize
+id: Verified_complaint_and_motions_for_temporary_restraining_order_and_preliminary_injunction
+continue button field: verified_complaint_and_motions_intro
+question: |
+  Verified complaint and motions for temporary restraining order and preliminary injunction
+subquestion: |
+  This form helps you to tell the judge what the landlord has done and to ask the court to order the landlord to stop the illegal activity.
+---
+id: File a Verified Complaint Form
+question: |
+  File a Verified Complaint Form
+subquestion: |
+  This form help tenants to tell the judge what the landlord has done and ask the court to order the landlord to stop the illegal activity.
+  
+    Step 1. Answer the questions that will fill out your letter
+    Step 2. Review and sign the form
+    Step 3. Download or email the final form. You will need to deliver it on your own.
+continue button field: File_a_Verified_Complaint_Form
+---
+id: Select which of the following applies to your landlord
+question: |
+  Select which of the following applies to your landlord.
+fields:
+  - "select from the following": landlord
+    datatype: checkboxes
+    choices:
+      - The building has more than 4 units
+      - The landlord is an LLC
+      - The landlord does not live in the building
+      - The landlord owns multiple buildings
+---
+code: |
+ if landlord == True:
+    landlord_subject_to_consumer_protection_law == True
+---
+id: On what date did the landlord breach the law
+question: |
+  On what date did the landlord breach the law?
+fields:
+  - "date of breach": date_of_breach
+    datatype: date
+---
+id: What did the landlord do
+question: |
+  What did the landlord do?
+fields:
+  - "Select from the following": landlord_breach
+    datatype: checkboxes
+    choices:
+      - The landlord turned off or failed to restore a utility service
+      - The landlord entered my home without permission
+      - The landlord failed to give reasonable notice to make repairs
+      - The landlord breached my right to quiet enjoyment
+---
+code: |
+  if landlord_breach == 'The landlord breached my right to quiet enjoyment':
+     description_of_interference
+---
+id: Describe the interference
+question: |
+  Describe the interference
+fields:
+  - "description": description_of_interference
+    input type: area
+    rows: 10
+---
+code: |
+  if landlord_breach == 'The landlord turned off or failed to restore a utility service':
+     utility_service
+---
+id: Which utility service did the landlord fail to restore or turn off
+question: |
+  Which utility service did the landlord fail to restore or turn off?
+fields:
+  - "name of utility service": utility_service
+---
+id: Do you receive a subsidy for rent?
+question: |
+  Do you receive a subsidy for rent?
+yesno: rent_subsidy
+---
+id: What is your monthly rent
+question: |
+  % if rent_subsidy == True:
+  What is the market rent?
+  % else:
+  What is your monthly rent?
+  % endif
+fields:
+  - "rent amount": rent_amount
+    datatype: currency
+    min: 0
+---
+id: Did you send the landlord a demand letter?
+question: |
+  Did you send the landlord a demand letter?
+yesno: demand_letter_sent
+---
+code: |
+  if demand_letter_sent == True:
+     date_of_93A_notice
+---
+id: When did you first send the landlord a demand letter
+question: |
+  When did you first send the landlord a demand letter?
+fields:
+  - "When did you first send the landlord a demand letter?": date_of_93A_notice
+    datatype: date
+---
+id: Which of the following activities would you like the court to make orders on
+question: |
+  Which of the following activities would you like the court to make orders on?
+fields:
+  - "Select the activities": court_orders
+    datatype: checkboxes
+    choices:
+      - Interfering with my right to quiet enjoyment of the premises
+      - Denying me possession of the premises
+      - Depriving me of my utility service
+---
+code: |
+  # This is a placeholder for the addresses that will be searched
+  # for matching address to court. Edit if court venue is based on 
+  # a different address than the user's
+  addresses_to_search = [user.address for user in users]
+---
+id: preview verified_complaint_and_motions
+question: |
+  Preview your form before you sign it
+subquestion: |
+  Here is a preview of the form you will sign on the next page.   
+  
+  ${ al_court_bundle.as_pdf(key='preview') }
+
+  Click the image to open it in a new tab. Click the "Edit answers" button
+  to edit your answers.
+
+  ${ action_button_html(url_action('review_verified_complaint_and_motions'), label='Edit answers', color='info') }
+  
+  Remember to come back to this window to continue and sign your form.
+continue button field: verified_complaint_and_motions_preview_question    
+---
+code: |
+  signature_fields = []
+---
+id: verified complaint and motions review screen
+event: review_verified_complaint_and_motions
+question: |
+  Review your answers
+review:
+  - Edit: rent_amount
+    button: |
+      **monthly rent**:
+      ${ currency(rent_amount) }
+  - Edit: landlord_breach
+    button: |
+      **breach**:
+      ${ landlord_breach }
+  - Edit: court_orders
+    button: |
+      **court orders**:
+      ${ court_orders }
+  - Edit: landlord
+    button: |
+      **landlord**:
+      ${ landlord }
+  - Edit: date_of_93A_notice
+    button: |
+      **When did you first send the landlord a demand letter?**:
+      ${ date_of_93A_notice }
+  - Edit: utility_service
+    button: |
+      **utility service**:
+      ${ utility_service }
+  - Edit: date_of_breach
+    button: |
+      **date of breach**:
+      ${ date_of_breach }
+  - Edit: description_of_interference
+    button: |
+      **description**:
+      ${ description_of_interference }
+  - Edit: docket_number
+    button: |
+      **docket_number**:
+      ${ docket_number }
+  - Edit: other_parties.revisit
+    button: |
+      **Other parties**
+
+      % for item in other_parties:
+        * ${ item }
+      % endfor
+  - Edit: trial_court
+    button: |
+      **trial_court**
+
+      % if defined("trial_court.name.first"):
+      * name: ${ trial_court.name.full() }
+      % endif
+      % if defined("trial_court.address.county"):
+      * address: ${ trial_court.address.block() }
+      % endif
+  - Edit: users.revisit
+    button: |
+      **Users**
+
+      % for item in users:
+        * ${ item }
+      % endfor
+  - Edit: signature_date
+    button: |
+      **signature_date**:
+      ${ signature_date }
+---
+continue button field: other_parties.revisit
+question: |
+  Edit other_parties
+subquestion: |
+  ${ other_parties.table }
+
+  ${ other_parties.add_action() }
+---
+table: other_parties.table
+rows: other_parties
+columns:
+  - Name: |
+      row_item.name.full() if defined("row_item.name.first") else ""
+  - Phone number: |
+      row_item.phone_number if defined("row_item.phone_number") else ""
+  - Address: |
+      row_item.address.block() if defined("row_item.address.address") else ""
+edit:
+  - name.first
+  - phone_number
+  - address.address
+confirm: True
+
+---
+continue button field: users.revisit
+question: |
+  Edit users
+subquestion: |
+  ${ users.table }
+
+  ${ users.add_action() }
+---
+table: users.table
+rows: users
+columns:
+  - Name: |
+      row_item.name.full() if defined("row_item.name.first") else ""
+  - Email: |
+      row_item.email if defined("row_item.email") else ""
+  - Address: |
+      row_item.address.block() if defined("row_item.address.address") else ""
+  - Phone number: |
+      row_item.phone_number if defined("row_item.phone_number") else ""
+edit:
+  - name.first
+  - email
+  - address.address
+  - phone_number
+confirm: True
+
+---
+id: download verified_complaint_and_motions
+event: verified_complaint_and_motions_download
+question: |
+  All done
+subquestion: |
+  Thank you ${users}. Your form is ready to download and deliver.
+  
+  View, download and send your form below. Click the "Edit answers" button to fix any mistakes.
+
+  ${ action_button_html(url_action('review_verified_complaint_and_motions'), label='Edit answers', color='info') }
+  
+  
+  ${ al_user_bundle.download_list_html() }
+  
+
+  ${ al_user_bundle.send_button_html(show_editable_checkbox=True) }
+
+progress: 100
+---
+objects:
+  - verified_complaint_and_motions_post_interview_instructions: ALDocument.using(title="Instructions", filename="verified_complaint_and_motions_next_steps.docx", enabled=True, has_addendum=False, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+  - verified_complaint_and_motions_attachment: ALDocument.using(title="Verified complaint and motions for temporary restraining order and preliminary injunction", filename="verified_complaint_and_motions.docx", enabled=True, has_addendum=False, default_overflow_message=AL_DEFAULT_OVERFLOW_MESSAGE)
+---
+objects:
+  - al_user_bundle: ALDocumentBundle.using(elements=[verified_complaint_and_motions_post_interview_instructions,verified_complaint_and_motions_attachment], filename="verified_complaint_and_motions.docx_package.pdf", title="All forms to download for your records", enabled=True)
+  - al_court_bundle: ALDocumentBundle.using(elements=[verified_complaint_and_motions_attachment], filename="verified_complaint_and_motions.docx_package.pdf", title="All forms to download for your records", enabled=True)
+---
+attachments:
+  - name: verified complaint and motions post interview instructions
+    filename: Post-interview-instructions     
+    variable name: verified_complaint_and_motions_post_interview_instructions[i]        
+    skip undefined: True
+    docx template file: verified_complaint_and_motions_next_steps.docx
+  - name: verified complaint and motions attachment
+    filename: verified_complaint_and_motions.docx     
+    variable name: verified_complaint_and_motions_attachment[i]        
+    skip undefined: True
+    docx template file: verified_complaint_and_motions.docx
